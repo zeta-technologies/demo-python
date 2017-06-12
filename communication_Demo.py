@@ -42,8 +42,8 @@ length = 200
 NFFT = 200
 fs_hz = 200
 overlap = NFFT - 30
-pg.mixer.init()
-pg.mixer.music.load('sound.mp3')
+#pg.mixer.init()
+#pg.mixer.music.load('sound.mp3')
 
 def filter_data(data, fs_hz):
 
