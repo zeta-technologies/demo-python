@@ -1,4 +1,4 @@
-const Ganglion = require('../../OpenBCI_NodeJS_Ganglion/index').Ganglion;
+const Ganglion = require('./OBGanglion/index').Ganglion;
 const ganglion = new Ganglion();
 var origin = 0;
 var cpt = 0;
