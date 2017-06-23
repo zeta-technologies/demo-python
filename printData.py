@@ -70,19 +70,22 @@ def filter_data(data, fs_hz):
     # return ff_data
     return f_data
 
-def wave_amplitude(data, fs_hz, NFFT, overlap, length, wave_range):
+def wave_amplitude(data, fs_hz, NFFT, overlap, length, frequenciesRange):
     data = np.asarray(data)
     data = data[:buffersize, :]
     f_eeg_data = filter_data(data, fs_hz)
     #t0 = time.time()
-    if wave_range == 'alpha':
-        wave_band_Hz = np.array([8, 12])
-    elif wave_range == 'gamma':
-        wave_band_Hz = np.array([25, 50])
-    elif wave_range == 'beta':
-        wave_band_Hz = np.array([12, 25])
-    elif wave_range == 'theta':
+
+    if frequenciesRange == 'delta':
+        wave_band_Hz = np.array([0.4, 4])
+    elif frequenciesRange == 'theta':
         wave_band_Hz = np.array([4, 7])
+    if frequenciesRange == 'alpha':
+        wave_band_Hz = np.array([8, 12])
+    elif frequenciesRange == 'beta':
+        wave_band_Hz = np.array([12, 25])
+    elif frequenciesRange == 'gamma':
+        wave_band_Hz = np.array([25, 35])
 
     size = f_eeg_data.shape[1]
 
@@ -141,7 +144,7 @@ def enqueue_output(out, queue):
         out.flush()
         queue.put(lines)
 
-process = Popen(['/usr/local/bin/node', 'test_premiere_valeur.js'], stdout=PIPE)
+process = Popen(['/usr/local/bin/node', 'openBCIDataStream.js'], stdout=PIPE)
 queue = Queue()
 thread = Thread(target=enqueue_output, args=(process.stdout, queue))
 thread.daemon = True # kill all on exit

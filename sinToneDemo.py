@@ -192,7 +192,7 @@ def sine_tone(freq, duration, bitrate):
     stream.close()
     p.terminate()
 
-process = Popen(['/usr/local/bin/node', 'test_premiere_valeur.js'], stdout=PIPE)
+process = Popen(['/usr/local/bin/node', 'openBCIDataStream.js'], stdout=PIPE)
 queue = Queue()
 thread = Thread(target=enqueue_output, args=(process.stdout, queue))
 thread.daemon = True # kill all on exit
@@ -273,8 +273,8 @@ while True:
             result4 = wave_amplitude(data_channel_4, fs_hz, NFFT, overlap, length, 'alpha' )
             #oldMean = (result1 + result2 + result3 + result4)/4
 
-            # newMean_uv = np.average(result1 + result2 + result3 + result4)
-            newMean_uv = np.average( result2 )
+            newMean_uv = np.average(result1 + result2 + result3 + result4)
+            # newMean_uv = np.average( result2 )
             mean_array_uv = np.append(mean_array_uv, newMean_uv)
 
             # VOLUME = (newMean_uv-min(oldMean_uv,newMean_uv))/(max(oldMean_uv, newMean_uv)-min(oldMean_uv, newMean_uv))
@@ -282,13 +282,13 @@ while True:
             spread_average = np.average(mean_array_uv[-5:-1]) # the spread_average takes the 5 last Means in the array mean_array_uv, and get the mean of them
             BIG_MEAN = np.average(mean_array_uv) # the BIG MEAN is the global mean
             frequency = 1000/math.pi*np.arctan(spread_average*spread_average*1e19-BIG_MEAN)+1000 # 1000/Pi * arctan(x-A) + 1000, gives frequency between 500 and 1500
-            # print "frequency", frequency
+
             # frequency = np.float64(frequency).item()
             # frequency = round(frequency, 8)
 
             if np.invert(math.isnan(frequency)): #the issue is that the first frequencies are not defined, thus are NaN float. sine_tone works only with float
                 print frequency
-                sine_tone(frequency, 1, 16000)
+                sine_tone(frequency, 1, 160000)
 
             # print type(frequency)
             # sine_tone(frequency, 0.9, 16000)

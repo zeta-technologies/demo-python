@@ -16,10 +16,10 @@ import signal
 import matplotlib.mlab as mlab
 import numpy as np
 import pandas as pd
-import scipy as sp
+# import scipy as sp
 import heapq
-from scipy.interpolate import UnivariateSpline
-from scipy.interpolate import interp1d
+# from scipy.interpolate import UnivariateSpline
+# from scipy.interpolate import interp1d
 from scipy import signal
 import json
 from requests import *
@@ -27,9 +27,8 @@ import datetime
 import pygame as pg # module that allows us to play music and change the volume regarding to alpha level
 import math
 from pyaudio import PyAudio
-
-
 #%matplotlib inline
+
 cpt = 0
 buffersize = 200 # there are 200 points for the four channels, so 1000 at all for one second (dont forget the index number)
 buffer_1 = []
@@ -55,7 +54,6 @@ def filter_data(data, fs_hz):
 
     # filter from 5 to 35 Hz, helps remove 50Hz noise and replicates paper
     ## also helps remove the DC line noise (baseline drift)
-    ## 125 is half the sampling rate (250Hz/2)
     b, a = signal.butter(4, (2.0 / (fs_hz / 2.0), 40.0 / (fs_hz / 2.0)), btype='bandpass')
     f_data = signal.lfilter(b, a, data, axis=0)
 
@@ -121,7 +119,7 @@ def wave_amplitude(data, fs_hz, NFFT, overlap, length, wave_range):
         # print(freq_alpha, freq_beta, freq_theta, freq_gamma)
 
     '''
-    Get the median, max and min of the 4 channels b
+    Get the median, max and min of the 4 channels
     '''
 
     # print(max_beta)
@@ -132,8 +130,7 @@ def wave_amplitude(data, fs_hz, NFFT, overlap, length, wave_range):
     min_range = np.min(mean_range[0][:])
 
     # ratio = med_beta / med_theta
-    #time_last_event = time.time()-t0
-    # print(mean_alpha)
+    # time_last_event = time.time()-t0
 
     # return [med_alpha, max_alpha, min_alpha, freq_alpha,
     #        med_beta, max_beta, min_beta, freq_beta,
@@ -183,46 +180,14 @@ def sine_tone(freq, duration, bitrate):
     stream.close()
     p.terminate()
 
-process = Popen(['/usr/local/bin/node', 'test_premiere_valeur.js'], stdout=PIPE)
+process = Popen(['/usr/local/bin/node', 'openBCIDataStream.js'], stdout=PIPE)
 queue = Queue()
 thread = Thread(target=enqueue_output, args=(process.stdout, queue))
 thread.daemon = True # kill all on exit
 thread.start()
 
-
-
-#        if len(self.buffer_1) < self.buffersize:
-#            self.buffer_1.append([ch1, ch2, ch3, ch4])
-#            self.count += 1
-#        else:
-            #filter_data(self.buffer_1, f_hz)
-#            self.alpha_mean = (self.buffer_1, self.alpha_threshold, self.fs_hz, self.NFFT, self.overlap)
-#            print(self.alpha_mean)
-#            self.buffer_1 = []
-
-# def sendDataServer(data_channel_1, data_channel_2, data_channel_3, data_channel_4):
-#     data = {
-#             'Channel 1': data_channel_1
-#             'Channel 2': data_channel_2
-#             'Channel 3': data_channel_3
-#             'Channel 4': data_channel_4
-#     }
-    # response = post('https://blink-detector.herokuapp.com/eegs.json',json=data)
-    # return response
-
-'''Useless function for the moment'''
-
-def truncate(f, n):
-    '''Truncates/pads a float f to n decimal places without rounding'''
-    s = '{}'.format(f)
-    if 'e' in s or 'E' in s:
-        return '{0:.{1}f}'.format(f, n)
-    i, p, d = s.partition('.')
-    return '.'.join([i, (d+'0'*n)[:n]])
-################################################################################
 # the following loop saves the index of the buffer that are interesting, without the channel id every 0 [5]
 for ind in range(0, buffersize):
-    #ind_2_remove_in_buffer1.append(ind*5)
     # starts at index 0 which is the number of the sample
     ind_channel_1.append(ind*5+1)
     ind_channel_2.append(ind*5+2)
@@ -234,33 +199,25 @@ newMean_uv = 0
 data = []
 sample_number = 0
 oldMean_uv = 5E-13
-# VOLUME = 0.5
+volume = 0.5
 mean_array_uv = np.array([])
 
 while True:
     try:
 
-        # the first while loop builds the buffer_1 for 1 second
+        # the first while loop builds the buffer_1 for 1 second, then it's processed by 2nd loop
         while (cpt < buffersize*5)  :
             buffer_1.append([queue.get_nowait()])
             cpt += 1
-        # if len(buffer_1) == buffersize*5 :
-            # for ind2 in sorted(ind_2_remove_in_buffer1, reverse = True):
-                # del buffer_1[ind2]
-            # print buffer_1(ind_channel_1)
-            # wave_amplitude()
             cpt2 = 0
 
         while cpt2 <1 :
 
-            # print buffer_1
-            # print len(buffer_1)
             cpt2 += 1
-            # print type(buffer_1)
             buffer_1_array = np.asarray(buffer_1, dtype=np.float64)
-            #print type(buffer_1)
+            # print type(buffer_1)
             # print ind_channel_1
-
+            # print len(buffer_1)
             data_channel_1 = buffer_1_array[ind_channel_1]
             data_channel_2 = buffer_1_array[ind_channel_2]
             data_channel_3 = buffer_1_array[ind_channel_3]
@@ -271,35 +228,25 @@ while True:
             result2 = wave_amplitude(data_channel_2, fs_hz, NFFT, overlap, length, 'alpha' )
             result3 = wave_amplitude(data_channel_3, fs_hz, NFFT, overlap, length, 'alpha' )
             result4 = wave_amplitude(data_channel_4, fs_hz, NFFT, overlap, length, 'alpha' )
-            #oldMean = (result1 + result2 + result3 + result4)/4
 
-            # newMean_uv = np.average(result1 + result2 + result3 + result4)
-            newMean_uv = np.average(result2)
+            newMean_uv = np.average(result1 + result2 + result3 + result4)
+            # newMean_uv = np.average(result2)
+
             # the mean_array_uv gather all the means of the channel2, each second, to get the global mean of that channel
             mean_array_uv = np.append(mean_array_uv, newMean_uv)
 
-            spread_average = np.average(mean_array_uv[-5:-1]) # the spread_average takes the 5 last Means in the array mean_array_uv, and get the mean of them
+            spread_average = np.average(mean_array_uv[-3:-1]) # the spread_average takes the 5 last Means in the array mean_array_uv, and get the mean of them
             BIG_MEAN = np.average(mean_array_uv) # the BIG MEAN is the global mean of the channel2
-            frequency = 1000/math.pi*np.arctan(spread_average*spread_average*1e19-BIG_MEAN)+1000 # 1000/Pi * arctan(x-A) + 1000, gives frequency between 500 and 1500
 
-            print "frequency", frequency
             # frequency = np.float64(frequency).item()
             # frequency = round(frequency, 8)
             VOLUME = (newMean_uv-min(oldMean_uv,newMean_uv))/(max(oldMean_uv, newMean_uv)-min(oldMean_uv, newMean_uv))
-
-            if np.invert(math.isnan(frequency)): #the issue is that the first frequencies are not defined, thus are NaN float. sine_tone works only with float
-                print frequency
-                # sine_tone(frequency, 1, 160000)
-
-                pg.mixer.music.set_volume(frequency/1500)
-                print frequency/1500
+            volume = (1000/math.pi*np.arctan(spread_average*spread_average*1e19-BIG_MEAN)+200)/1500 # 1000/Pi * arctan(x-A) + 1000, gives frequency between 500 and 1500
+            if np.invert(math.isnan(volume)): #the issue is that the first frequencies are not defined, thus are NaN float. sine_tone works only with float
+                pg.mixer.music.set_volume(volume)
+                print "Volume set to ", volume,  "| CHANNEL 2 : ", result2
             # print type(frequency)
-            # sine_tone(frequency, 0.9, 160000)
-
-            # time.sleep(0.9)
             # pg.mixer.music.stop()
-            # print "\n CHANNEL 1:  ", result1, "    CHANNEL 2 : ", result2, "    CHANNEL 3 : ", result3, "    CHANNEL 4 : ", result4
-            print "\n    CHANNEL 2 : ", result2
             cpt = 0
             oldMean_uv = newMean_uv
             buffer_1 = []
@@ -315,6 +262,3 @@ while True:
         # wave_amplitude(data, fs_hz, NFFT, overlap, 'alpha')
         str(buffer_1)
         #sys.stdout.write(char)
-
-#a = numpy.array([1, 2, 3, 4], dtype=numpy.float64)
-#a.astype(numpy.int64)
