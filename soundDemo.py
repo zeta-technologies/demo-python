@@ -43,7 +43,7 @@ NFFT = 200
 fs_hz = 200
 overlap = NFFT - 30
 pg.mixer.init()
-pg.mixer.music.load('../afterMarianneSpace.mp3')
+pg.mixer.music.load('afterMarianneSpace.mp3')
 pg.mixer.music.set_volume(1)
 pg.mixer.music.play(0)
 def filter_data(data, fs_hz):
