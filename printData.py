@@ -16,10 +16,10 @@ import signal
 import matplotlib.mlab as mlab
 import numpy as np
 import pandas as pd
-import scipy as sp
-import heapq
-from scipy.interpolate import UnivariateSpline
-from scipy.interpolate import interp1d
+# import scipy as sp
+# import heapq
+# from scipy.interpolate import UnivariateSpline
+# from scipy.interpolate import interp1d
 from scipy import signal
 import json
 from requests import *
@@ -45,6 +45,11 @@ ind_channel_4 = []
 NFFT = 200
 fs_hz = 200
 overlap = NFFT - 30
+process = Popen(['/usr/local/bin/node', 'openBCIDataStream.js'], stdout=PIPE)
+queue = Queue()
+thread = Thread(target=enqueue_output, args=(process.stdout, queue))
+thread.daemon = True # kill all on exit
+thread.start()
 
 
 def filter_data(data, fs_hz):
@@ -143,12 +148,6 @@ def enqueue_output(out, queue):
         lines = out.readline()
         out.flush()
         queue.put(lines)
-
-process = Popen(['/usr/local/bin/node', 'openBCIDataStream.js'], stdout=PIPE)
-queue = Queue()
-thread = Thread(target=enqueue_output, args=(process.stdout, queue))
-thread.daemon = True # kill all on exit
-thread.start()
 
 # the following loop saves the index of the buffer that are interesting, without the channel id every 0 [5]
 for ind in range(0, buffersize):

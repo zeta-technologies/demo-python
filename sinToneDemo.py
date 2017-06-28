@@ -281,7 +281,7 @@ while True:
 
             spread_average = np.average(mean_array_uv[-5:-1]) # the spread_average takes the 5 last Means in the array mean_array_uv, and get the mean of them
             BIG_MEAN = np.average(mean_array_uv) # the BIG MEAN is the global mean
-            frequency = 1000/math.pi*np.arctan(spread_average*spread_average*1e19-BIG_MEAN)+1000 # 1000/Pi * arctan(x-A) + 1000, gives frequency between 500 and 1500
+            frequency = 1000/math.pi*np.arctan(spread_average*1e9-BIG_MEAN)+1000 # 1000/Pi * arctan(x-A) + 1000, gives frequency between 500 and 1500
 
             # frequency = np.float64(frequency).item()
             # frequency = round(frequency, 8)
