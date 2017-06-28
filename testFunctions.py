@@ -4,22 +4,11 @@ from threading  import Thread
 from Queue      import Queue, Empty
 from subprocess import call
 import binascii
-# import csv
-# from scipy.cluster.vq import kmeans2, whiten
-# from mpl_toolkits.mplot3d import Axes3D
-# from numpy import genfromtxt
-# import argparse
-# from scipy.stats.stats import pearsonr
 import time
 import signal
-#import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 import numpy as np
 import pandas as pd
-# import scipy as sp
-# import heapq
-# from scipy.interpolate import UnivariateSpline
-# from scipy.interpolate import interp1d
 from scipy import signal
 import json
 from requests import *
@@ -41,7 +30,6 @@ elif FreqRange == 'theta':
 # script python communication_Demo.py alpha , or ask the user which freqRange to choose
 # freqRange = input("choose between alpha, beta, gamma, delta, theta ? dont forget the \"\" ")
 
-#%matplotlib inline
 cpt = 0
 buffersize = 200 # there are 200 points for the four channels, so 1000 at all for one second (dont forget the index number)
 buffer_1 = []
@@ -94,29 +82,14 @@ while True:
             data[1, :] = buffer_1_array[ind_channel_2]
             data[2, :] = buffer_1_array[ind_channel_3]
             data[3, :] = buffer_1_array[ind_channel_4]
-            # print data[3, :]
+
             result = np.zeros(nb_channels)
 
-            # print "data length :", data.length, "\n"
             for channel in range(4):
-                # print channel
                 result[channel] = extract_freqbandmean(200, fs_hz, data[channel,:], freqRange[0], freqRange[1])
 
             print result
-            # frequenciesAmplitudes = wave_amplitude(data, fs_hz, NFFT, overlap, buffersize, freqRange)
-            # print
-            # result1 = wave_amplitude(data_channel_1, fs_hz, NFFT, overlap, buffersize, freqRange )
-            # result2 = wave_amplitude(data_channel_2, fs_hz, NFFT, overlap, buffersize, freqRange )
-            # result3 = wave_amplitude(data_channel_3, fs_hz, NFFT, overlap, buffersize, freqRange )
-            # result4 = wave_amplitude(data_channel_4, fs_hz, NFFT, overlap, buffersize, freqRange )
-
-            # newMean_uv = np.average(result1)
-            # the mean_array_uv gather all the means of the channel2, each second, to get the global mean of that channel
-            # mean_array_uv = np.append(mean_array_uv, newMean_uv)
-
-            # spread_average = np.average(mean_array_uv[-5:-1]) # the spread_average takes the 5 last Means in the array mean_array_uv, and get the mean of them
-
-            # print freqRange + " mean for each channel: \n CHANNEL 1:  ", result[0]
+            print freqRange + " mean for each channel: \n CHANNEL 1:  ", result[0]
             cpt = 0
             oldMean_uv = newMean_uv
             buffer_1 = []
@@ -124,6 +97,6 @@ while True:
     except Empty:
         continue # do stuff
     else:
-        # wave_amplitude(data, fs_hz, NFFT, overlap, 'alpha')
+
         str(buffer_1)
         #sys.stdout.write(char)
