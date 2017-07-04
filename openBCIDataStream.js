@@ -9,7 +9,7 @@ ganglion.once('ganglionFound', (peripheral) => {
   ganglion.searchStop();
   ganglion.on('sample', (sample) => {
     /** Work with sample */
-    console.log(sample.sampleNumber);
+    // console.log(sample.sampleNumber);
     for (let i = 0; i < ganglion.numberOfChannels(); i++) {
       console.log(sample.channelData[i].toFixed(8)); //+ " Volts.");
     }

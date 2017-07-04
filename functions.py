@@ -4,6 +4,7 @@ from subprocess import call
 import binascii
 import time
 import signal
+import scipy
 import matplotlib.mlab as mlab
 import numpy as np
 import pandas as pd
@@ -13,6 +14,7 @@ import json
 from requests import *
 import datetime
 import math
+from pyaudio import PyAudio
 
 def filter_data(data, fs_hz):
     '''
@@ -22,9 +24,10 @@ def filter_data(data, fs_hz):
     Wn = fc/(fs/2) is the cutoff frequency, frequency at which we lose 3dB.
     For digital filters, Wn is normalized from 0 to 1, where 1 is the Nyquist frequency, pi radians/sample. (Wn is thus in half-cycles / sample.)
     '''
-    b, a = signal.butter(4, (1.0 / (fs_hz / 2.0), 44.0 / (fs_hz / 2.0)), btype='bandpass')
-    f_data = signal.lfilter(b, a, data, axis=0)
 
+    b, a = scipy.signal.butter(4, [0.5 / (fs_hz / 2.0), 44.0 / (fs_hz / 2.0)], btype='bandpass')
+    # f_data = signal.lfilter(b, a, data, axis=0)
+    f_data = scipy.signal.filtfilt(b ,a, data)
     # OTHER FILTERS
 
     # filter the data to remove DC
@@ -49,110 +52,52 @@ def extract_freqbandmean(N, fe, signal, fmin, fmax):
     mean = np.mean(fftsig)
     return mean
 
-def wave_amplitude(data, fs_hz, NFFT, overlap, buffersize, wave_range):
+def extract_freqbandmin(N, fe, signal, fmin, fmax):
+    #f = np.linspace(0,fe/2,int(np.floor(N/2)))
+    fftsig = abs(np.fft.fft(signal))
+    # print fftsig.shape
+    fftsig = fftsig[fmin:fmax]
+    min = np.min(fftsig)
+    return min
 
-    # print len(data)
-    data = np.asarray(data)
-    # print len(data)
-    data = data[:, :buffersize]
-    # print data.shape #should be (4, 200)
+def extract_freqbandmax(N, fe, signal, fmin, fmax):
+    #f = np.linspace(0,fe/2,int(np.floor(N/2)))
+    fftsig = abs(np.fft.fft(signal))
+    # print fftsig.shape
+    fftsig = fftsig[fmin:fmax]
+    max = np.amax(fftsig)
+    return max
 
-    f_eeg_data = filter_data(data, fs_hz)
-    # print f_eeg_data.shape # should be (4, 200)
+def neurofeedback_freq(array, freqMax, freqMin):
+    last3 = np.average(array[-3:-1])
+    max = np.amax(array)
+    min = np.min(array)
+    a = 1. * (freqMin - freqMax) / (max - min)
+    b = freqMin - max  * a
+    frequency = a * last3 + b
+    return frequency
 
-    #t0 = time.time()
-    if wave_range == 'alpha':
-        wave_band_Hz = np.array([8, 12])
-    elif wave_range == 'gamma':
-        wave_band_Hz = np.array([25, 50])
-    elif wave_range == 'beta':
-        wave_band_Hz = np.array([12, 25])
-    elif wave_range == 'theta':
-        wave_band_Hz = np.array([4, 7])
+def nfFreqBis(array, freqMax, freqMin):
+    spread_average = np.average(array[-5:-1])
+    globalMean = np.average(array)
+    frequency = (freqMax-freqMin)/math.pi*np.arctan(spread_average*1e9-globalMean)+freqMax-freqMin    # 1000/Pi * arctan(x-A) + 1000, gives frequency between 500 and 1500
+    return frequency
 
-    size = f_eeg_data.shape[0] # should be 4
-    # print "filtered data number of channels " + size
-
-    mean_range = np.zeros((size, 1))
-    max_range = np.zeros((size,1 ))
-    min_range = np.zeros((size, 1))
-    ratio = np.zeros((size, 1))
-
-    for channel in range(size):
-
-        # data[channel] = rolling_mean(data[channel])
-        # data[channel] = data[channel] - np.mean(data[channel])
-        # print(f_eeg_data.shape)
-
-        '''
-        NFFT is 200
-        We dont care of overlap since we do the spectrogram for only 1 sample.
-        The amplitudes of spec_PSDperHz are around 1e-20, why is it so low ?
-        There are two columns of spec_PSDperHz, where I should have only one
-        '''
-
-        # spec_PSDperHz, freqs, t_spec = mlab.specgram(f_eeg_data[:, channel],
-        #                                              NFFT=NFFT,
-        #                                              Fs=fs_hz,
-        #                                              window=mlab.window_none(),
-        #                                              noverlap=overlap)
-        #
-
-        amplitutdes = np.fft.fft(f_eeg_data[:, channel])
-
-
-        print spec_PSDperHz
-        # convert the units of the spectral data
-        spec_PSDperBin = spec_PSDperHz * fs_hz / float(NFFT)  # convert to "Power Spectral Density per bin"
-        spec_PSDperBin = np.asarray(spec_PSDperBin)
-        # print(spec_PSDperBin.shape) # from 1 to 110 Hz, step of 1Hz
-
-        # take the average spectrum according to the time - axis 1
-
-        bool_inds_wave_range = (freqs > wave_band_Hz[0]) & (freqs < wave_band_Hz[1])
-        #freq_range = freqs[bool_inds_wave_range == 1]
-        #freq_range = freq_range[max_range_idx]
-
-        spec_PSDperBin_range = spec_PSDperBin[bool_inds_wave_range]
-
-        mean_range[0][channel] = np.mean(spec_PSDperBin_range)
-
-        max_range[0][channel] = np.amax(spec_PSDperBin_range)
-
-        # get the frequency of the max in each range alpha, beta, theta, gamma
-        # max_range_idx = np.argmax(spec_PSDperBin_range)
-        # print(freq_alpha, freq_beta, freq_theta, freq_gamma)
-
-    '''
-    Get the median, max and min of the 4 channels
-    '''
-
-    # print(max_beta)
-    med_range = np.median(mean_range[0][:])
-
-    max_range = np.amax(mean_range[0][:])
-
-    min_range = np.min(mean_range[0][:])
-
-    # ratio = med_beta / med_theta
-    # time_last_event = time.time()-t0
-
-    # return [med_alpha, max_alpha, min_alpha, freq_alpha,
-    #        med_beta, max_beta, min_beta, freq_beta,
-    #        med_theta, max_theta, min_theta, freq_theta,
-    #        med_gamma, max_gamma, min_gamma, freq_gamma, time_last_alpha]
-
-    results = [med_range, max_range, min_range]
-    result = results
-    # print(med_gamma.type())
-
-    return result
+def neurofeedback_volume(array, volMax, volMin):
+    last = array[-1]
+    max = np.amax(array)
+    min = np.min(array)
+    a = 1. * (volMin - volMax) / (max - min)
+    b = volMin - max  * a
+    volume = a * last + b
+    return volume
 
 def enqueue_output(out, queue):
     while True:
         lines = out.readline()
         out.flush()
-        queue.put(lines)
+        #if lines != '\n' && lines.isDigit():
+        queue.put(float(lines))
 
 def sine_tone(freq, duration, bitrate):
     #See http://en.wikipedia.org/wiki/Bit_rate#Audio

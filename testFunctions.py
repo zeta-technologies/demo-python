@@ -72,7 +72,6 @@ while True:
             ''' len(buffer_1) gives 500'''
             cpt += 1
             cpt2 = 0
-
         while cpt2 <1 :
             cpt2 += 1
             buffer_1_array = np.asarray(buffer_1, dtype=np.float64)
