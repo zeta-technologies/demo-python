@@ -77,7 +77,7 @@ def neurofeedback_freq(array, freqMax, freqMin):
     frequency = a * last3 + b
     return frequency
 
-def nfFreqBis(array, freqMax, freqMin):
+def neurofeedback_freq_arctan(array, freqMax, freqMin):
     spread_average = np.average(array[-5:-1])
     globalMean = np.average(array)
     frequency = (freqMax-freqMin)/math.pi*np.arctan(spread_average*1e9-globalMean)+freqMax-freqMin    # 1000/Pi * arctan(x-A) + 1000, gives frequency between 500 and 1500

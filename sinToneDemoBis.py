@@ -122,30 +122,18 @@ while True:
             newMean_alpha = np.average(OPB1_bandmean_alpha)
             newMean_delta = np.average(OPB1_bandmean_delta)
             ratio = newMean_alpha / newMean_delta
-            print 'Ration', ratio
+            print 'ratio', ratio
             ''' increment the mean, min and max arrays of the freqRange studied'''
             ratio_array.append(ratio)
 
-            # BIG_Max = np.amax(max_array ) # the BIG MEAN is the global mean of the session
-            # BIG_Min = np.amin(min_array )
-            # print BIG_Min
-            # print BIG_Max
-            # VOLUME = (newMean-min(oldMean,newMean))/(max(oldMean, newMean)-min(oldMean, newMean))
-            # volume = (1/math.pi*np.arctan(spread_average-(BIG_Max-BIG_Min)/2)+0.5) # 1000/Pi * arctan(x-A) + 1000, gives frequency between 500 and 1500
-            #
-            # volume = spread_average / BIG_Max
-            # volume = (1/math.pi*np.arctan(spread_average-(BIG_Max-BIG_Min)/2)+0.5)
-
             ''' Freq is MAX = 1 500 when Ratio is Max, and freq is MIN = 500 when freqRange is MAX'''
             frequency = neurofeedback_freq(ratio_array, freqMax= 1500, freqMin= 500)
-
-            # frequencyBis = nfFreqBis(ration_array, freqMax = 1500, freqMin = 500)
+            # frequencyBis = nfFreqBis(ratio_array, freqMax = 1500, freqMin = 500)
 
             if np.invert(math.isnan(frequency)): #the issue is that the first frequencies are not defined, thus are NaN float. sine_tone works only with float
                 print frequency
                 sine_tone(frequency, 1, 160000)
 
-            # print type(frequency)
             # pg.mixer.music.stop()
             cpt = 0
             buffer_1 = []
