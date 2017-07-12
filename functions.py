@@ -14,6 +14,8 @@ import json
 from requests import *
 import datetime
 import math
+from time import sleep
+import pygame as pg
 from pyaudio import PyAudio
 
 def filter_data(data, fs_hz):
@@ -129,3 +131,41 @@ def sine_tone(freq, duration, bitrate):
     stream.stop_stream()
     stream.close()
     p.terminate()
+
+def punch(level, levels_images, fond, punch): # function that change the image and increase the level
+
+    level = level + 1
+    level_img = pg.image.load(levels_images[level-1]).convert_alpha()
+    scaled_level = pg.transform.scale(level_img, (100, 440))
+    screen.blit(scaled_level, (700, 100))
+    punch_noise.play()
+    screen.blit(fond, (0, 0))
+    screen.blit(punch, (200+2*x,-9))
+    time.sleep(1)
+
+def movePunchinBall(angle, screen, scoreBar, scoreDigit, fond, image):
+    animUpLeft = []
+    animUpRight = []
+    allAnim = []
+    for i in range(angle):
+        animUpLeft.append(pg.transform.rotate(image, -i))
+
+    for i in range(angle):
+        animUpRight.append(pg.transform.rotate(image, i))
+
+    allAnim.append(animUpLeft + list(reversed(animUpLeft)) + animUpRight + list(reversed(animUpRight)))
+    # print allAnim
+    for j in range(len(allAnim[0])):
+        screen.blit(fond, (0, 0))
+        # print allAnim[0][1]
+        screen.blit(allAnim[0][j], (350, -5))
+        # print 1
+        # sleep(0.1)
+        pg.display.update()
+
+        # screen.blit(scoreBar, (317, 460))
+        # screen.blit(scoreDigit, (800, 30))
+
+
+#TODO function that returns the next position in flying game
+# def newPosition ( ):
