@@ -275,7 +275,7 @@ while True:
 
             newMean_uv = np.average(result1 + result2 + result3 + result4)
             # newMean_uv = np.average( result2 )
-            mean_array_uv.append(newMean_uv)
+            mean_array_uv = np.append(mean_array_uv, newMean_uv)
 
             # VOLUME = (newMean_uv-min(oldMean_uv,newMean_uv))/(max(oldMean_uv, newMean_uv)-min(oldMean_uv, newMean_uv))
 

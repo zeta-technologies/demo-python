@@ -39,7 +39,7 @@ score = 0
 
 '''Fly game'''
 skyImage = 'images/sky.png'
-planeImage = 'images/plane.jpg'
+planeImage = 'images/plane.png'
 cloudImage = 'images/cloud.png'
 oldPosy = 200
 steps = 10

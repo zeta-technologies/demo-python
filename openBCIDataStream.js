@@ -3,6 +3,11 @@ const ganglion = new Ganglion();
 var origin = 0;
 var cpt = 0;
 var start = new Date().getTime();
+var dataSample = [];
+var streamDataChannel1 = [];
+var streamDataChannel2 = [];
+var streamDataChannel3 = [];
+var streamDataChannel4 = [];
 
 ganglion.once('ganglionFound', (peripheral) => {
   // Stop searching for BLE devices once a ganglion is found.
@@ -12,8 +17,12 @@ ganglion.once('ganglionFound', (peripheral) => {
     // console.log(sample.sampleNumber);
     for (let i = 0; i < ganglion.numberOfChannels(); i++) {
       console.log(sample.channelData[i].toFixed(8)); //+ " Volts.");
+      // datasample.push(sample.channelData[i].toFixed(8))
     }
   });
+  // ganglion.on('sample', (sample) => {
+  //   if ganglion.channelNumber() == 1;
+  //   })
   ganglion.once('ready', () => {
     ganglion.streamStart();
   });

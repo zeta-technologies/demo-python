@@ -56,7 +56,7 @@ scoreDigit = pg.transform.scale(scoreDigit, (70, 90))
 sky = pg.image.load(skyImage).convert()
 sky = pg.transform.scale(sky, (1024, 576))
 cloud = pg.image.load(cloudImage).convert()
-plane = pg.image.load(planeImage).convert()
+plane = pg.image.load(planeImage)
 # plane = plane.set_colorkey((255, 255, 255))
 
 '''launch node process'''
@@ -301,8 +301,14 @@ while continuer:
                     newPosy = a * newMean_alpha + b
 
                 # screen.blit(fond, (0, 0))
-
                 deltaPosy = (newPosy - oldPosy) / steps
+                screen.blit(sky, (0, 0))
+                # screen.blit(plane, (300, oldPosy + deltaPosy * step))
+                screen.blit(plane, (300, newPosy))
+                print oldPosy, newPosy
+                # pg.time.delay(400)
+                pg.display.flip()
+
                 print "new Mean of 4 channels", newMean_alpha, maxAlpha, minAlpha
 
                 # scoreBar = pg.image.load(levels_images[level]).convert_alpha()
@@ -319,12 +325,7 @@ while continuer:
                 #     # sys.stdout.write(char)
 
 
-                # screen.blit(sky, (0, 0))
-                # screen.blit(plane, (300, oldPosy + deltaPosy * step))
-                # screen.blit(plane, (300, newPosy))
-                # print oldPosy + deltaPosy * step
-                # pg.time.delay(400)
-                # pg.display.flip()
+
 
         except Empty:
             continue # do stuff
